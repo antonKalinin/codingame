@@ -93,8 +93,8 @@ struct Bender {
     var loopMode = false
     var loopPositionHash: String?
     var loopIndex: Int?
-    var prevPositions: [String] = []
-    var loopPositions: [String] = []
+    var prevHashes: [String] = []
+    var loopHashes: [String] = []
 
     mutating func setMap(map: [[String]]) {
         self.map = map
@@ -174,9 +174,9 @@ struct Bender {
         let positionHash = getPositionHash()
 
         if loopMode {
-            loopPositions.append(positionHash)
+            loopHashes.append(positionHash)
         } else {
-            prevPositions.append(positionHash)
+            prevHashes.append(positionHash)
         }
     }
 
@@ -191,9 +191,9 @@ struct Bender {
 
         // two circles were made, lets compare them
         if loopMode && positionHash == loopPositionHash! {
-            let firstLoop = Array(prevPositions[loopIndex!..<prevPositions.count])
+            let firstLoopHashes = Array(prevHashes[loopIndex!..<prevHashes.count])
 
-            isLoop = loopPositions.count == firstLoop.count && loopPositions.sorted() == firstLoop.sorted()
+            isLoop = loopHashes.count == firstLoopHashes.count && loopHashes.sorted() == firstLoopHashes.sorted()
             if isLoop {
                 print("F@$K... I am in LOOP!!!", to: &errStream)
             } else {
@@ -204,17 +204,17 @@ struct Bender {
                 way = [LOOP]
             } else {
                 // no loop, reset paths
-                loopPositions = []
-                prevPositions = []
+                loopHashes = []
+                prevHashes = []
                 loopMode = false
             }
 
             return isLoop
         }
 
-        if loopPositionHash == nil && prevPositions.contains(positionHash) {
+        if loopPositionHash == nil && prevHashes.contains(positionHash) {
             loopPositionHash = positionHash
-            loopIndex = prevPositions.index(of: positionHash)
+            loopIndex = prevHashes.index(of: positionHash)
             loopMode = true
             print("I've been HERE! \(loopPositionHash!)", to: &errStream)
         }
@@ -239,7 +239,7 @@ var bender = Bender()
 var map = [[String]]()
 var teleports = [Position]()
 
-let inputs = (readLine()!).characters.split{$0 == " "}.map(String.init)
+let inputs = (readLine()!).characters.split {$0 == " "}.map(String.init)
 let L = Int(inputs[0])!
 let C = Int(inputs[1])!
 if L > 0 {
