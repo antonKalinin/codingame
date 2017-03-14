@@ -91,8 +91,6 @@ struct Bender {
     var teleports: [String: Position] = [:]
 
     var loopMode = false
-    var loopPositionHash: String?
-    var loopIndex: Int?
     var prevHashes: [String] = []
     var loopHashes: [String] = []
 
@@ -173,10 +171,8 @@ struct Bender {
     mutating func rememberPosition() {
         let positionHash = getPositionHash()
 
-        if loopMode {
-            loopHashes.append(positionHash)
-        } else {
-            prevHashes.append(positionHash)
+        if !loopMode {
+            prevHashes.append(getPositionHash())
         }
     }
 
@@ -189,34 +185,32 @@ struct Bender {
         var isLoop = false
         let positionHash = getPositionHash()
 
-        // two circles were made, lets compare them
-        if loopMode && positionHash == loopPositionHash! {
-            let firstLoopHashes = Array(prevHashes[loopIndex!..<prevHashes.count])
+        // looks like we are going same way again
+        if loopMode {
+            var loopPositionHash = loopHashes.remove(at: 0)
 
-            isLoop = loopHashes.count == firstLoopHashes.count && loopHashes.sorted() == firstLoopHashes.sorted()
+            loopMode = loopPositionHash == positionHash
+            isLoop = loopMode && loopHashes.count == 0
+
             if isLoop {
-                print("F@$K... I am in LOOP!!!", to: &errStream)
-            } else {
-                print("I've been here TWICE, but looks like its OKAY... \(loopPositionHash!)", to: &errStream)
+                // print("F@$K... I am in LOOP!!!", to: &errStream)
+                way = [LOOP]
+            } else if !loopMode {
+                // print("I've been here TWICE, but looks like its OKAY... \(loopPositionHash)", to: &errStream)
             }
 
-            if isLoop {
-                way = [LOOP]
-            } else {
-                // no loop, reset paths
-                loopHashes = []
+            if !loopMode {
                 prevHashes = []
-                loopMode = false
             }
 
             return isLoop
         }
 
-        if loopPositionHash == nil && prevHashes.contains(positionHash) {
-            loopPositionHash = positionHash
-            loopIndex = prevHashes.index(of: positionHash)
+        if !loopMode && prevHashes.contains(positionHash) {
+            let loopIndex = prevHashes.index(of: positionHash)! + 1
+            loopHashes = Array(prevHashes[loopIndex..<prevHashes.count])
             loopMode = true
-            print("I've been HERE! \(loopPositionHash!)", to: &errStream)
+            print("I've been HERE! \(positionHash) \(loopHashes)", to: &errStream)
         }
 
         return false
